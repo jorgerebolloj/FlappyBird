@@ -46,7 +46,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let texturaPajaro1 = SKTexture(imageNamed: "pajaro1")
         let texturaPajaro2 = SKTexture(imageNamed: "pajaro2")
         
-        let aleteo = SKAction.animateWithTextures([texturaPajaro1, texturaPajaro2], timePerFrame: NSTimeInterval(0.2))
+        let aleteo = SKAction.animateWithNormalTextures([texturaPajaro1, texturaPajaro2], timePerFrame: NSTimeInterval(0.5))
         let vuelo = SKAction.repeatActionForever(aleteo)
         
         pajaro = SKSpriteNode(texture: texturaPajaro1)
@@ -58,10 +58,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         pajaro.runAction(vuelo)
         
         pajaro.physicsBody!.categoryBitMask = categoriaPajaro
-        pajaro.physicsBody!.collisionBitMask = categoriaSuelo |
-        categoriaTubos
-        pajaro.physicsBody!.contactTestBitMask = categoriaSuelo |
-        categoriaTubos
+        pajaro.physicsBody!.collisionBitMask = categoriaSuelo | categoriaTubos
+        pajaro.physicsBody!.contactTestBitMask = categoriaSuelo | categoriaTubos
         
         self.addChild(pajaro)
         
@@ -125,14 +123,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         puntuacionLabel.text = "\(puntuacion)"
         self.addChild(puntuacionLabel)
         
-        
+        mejorPuntuacion = 0
         mejorPuntuacionLabel.fontName = "Arial"
-        mejorPuntuacionLabel.position = CGPointMake(CGRectGetMidX(self.frame), self.frame.height-150)//CGPointMake(CGRectGetMaxX(self.frame)-mejorPuntuacionLabel.frame.size.width, CGRectGetMaxY(self.frame)-mejorPuntuacionLabel.frame.size.height)
-        mejorPuntuacionLabel.fontSize = 12
+        mejorPuntuacionLabel.position = CGPointMake(CGRectGetMidX(self.frame), self.frame.height-30)
+        mejorPuntuacionLabel.fontSize = 20
         mejorPuntuacionLabel.alpha = 0.5
-        mejorPuntuacionLabel.verticalAlignmentMode = .Top
-        mejorPuntuacionLabel.horizontalAlignmentMode = .Right
-        mejorPuntuacionLabel.zPosition = 1
+        mejorPuntuacionLabel.zPosition = 0
         mejorPuntuacionLabel.text = "Mejor puntuación:\n\(mejorPuntuacion)"
         self.addChild(mejorPuntuacionLabel)
     }
@@ -248,7 +244,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         movimiento.speed = 1
         adminTubos.removeAllChildren()
         separacionTubos = 200
-        mejorPuntuacion = puntuacion
+        if puntuacion > mejorPuntuacion {
+            mejorPuntuacion = puntuacion
+        }
+        mejorPuntuacionLabel.text = "Mejor puntuación:\n\(mejorPuntuacion)"
         puntuacion = 0
         puntuacionLabel.text = "\(puntuacion)"
     }
