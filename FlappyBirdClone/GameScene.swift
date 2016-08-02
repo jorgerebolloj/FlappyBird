@@ -10,245 +10,326 @@ import SpriteKit
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
-    var pajaro = SKSpriteNode()
-    var colorCielo = SKColor()
-    var texturaTubo1 = SKTexture()
-    var texturaTubo2 = SKTexture()
-    var separacionTubos = 180.0
-    var controlTubo = SKAction()
+    var verticalPipeGap = 150
     
-    let categoriaPajaro: UInt32 = 1 << 0
-    let categoriaSuelo: UInt32 = 1 << 1
-    let categoriaTubos: UInt32 = 1 << 2
-    let categoriaAvance: UInt32 = 1 << 3
+    var bird: SKSpriteNode!
+    let birdTexture1: SKTexture
+    let birdTexture2: SKTexture
+    let birdTexture3: SKTexture
+    var skyColor: SKColor
+    let skyTexture: SKTexture
+    let groundTexture: SKTexture
+    let pipeTextureUp: SKTexture
+    let pipeTextureDown: SKTexture
     
-    let movimiento = SKNode()
+    var movePipesAndRemove: SKAction!
+    var movingBackgroundLayer: SKNode!
+    var pipesManager: SKNode!
     
-    var reset = false
+    var canRestart = Bool()
     
-    let adminTubos = SKNode()
+    var scoreLabelNode: SKLabelNode
+    var score = NSInteger()
     
-    var puntuacion = NSInteger()
-    var mejorPuntuacion = NSInteger()
-    let puntuacionLabel = SKLabelNode()
-    let mejorPuntuacionLabel = SKLabelNode()
+    var isGameOver = Bool()
+    
+    let birdCategory: UInt32 = 1 << 0
+    let worldCategory: UInt32 = 1 << 1
+    let skyCategory: UInt32 = 1 << 2
+    let pipeCategory: UInt32 = 1 << 3
+    let scoreCategory: UInt32 = 1 << 4
+    
+    override init(size:CGSize) {
+        birdTexture1 = SKTexture(imageNamed: "pajaro1")
+        birdTexture2 = SKTexture(imageNamed: "pajaro2")
+        birdTexture3 = SKTexture(imageNamed: "pajaro3")
+        skyColor = SKColor(red: 113/255, green: 197/255, blue: 207/255, alpha: 1.0)
+        skyTexture = SKTexture(imageNamed: "cielo")
+        groundTexture = SKTexture(imageNamed: "suelo")
+        pipeTextureUp = SKTexture(imageNamed: "tubo2")
+        pipeTextureDown = SKTexture(imageNamed: "tubo1")
+        scoreLabelNode = SKLabelNode(fontNamed:"MarkerFelt-Wide")
+        score = 0
+        
+        super.init(size:size)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func didMoveToView(view: SKView) {
         /* Setup your scene here */
         
-        self.physicsWorld.contactDelegate = self
-        self.physicsWorld.gravity = CGVectorMake(0.0, -5.0)
+        canRestart = false
         
-        self.addChild(movimiento)
+        // setup physics
+        physicsWorld.gravity = CGVector(dx: 0.0, dy: -5.0)
+        physicsWorld.contactDelegate = self
         
-        movimiento.addChild(adminTubos)
+        // setup background color
+        skyColor = SKColor(red: 81.0/255.0, green: 192.0/255.0, blue: 201.0/255.0, alpha: 1.0)
+        backgroundColor = skyColor
         
-        let texturaPajaro1 = SKTexture(imageNamed: "pajaro1")
-        let texturaPajaro2 = SKTexture(imageNamed: "pajaro2")
+        //initialize background Layer
+        movingBackgroundLayer = SKNode()
+        addChild(movingBackgroundLayer)
         
-        let aleteo = SKAction.animateWithNormalTextures([texturaPajaro1, texturaPajaro2], timePerFrame: NSTimeInterval(0.5))
-        let vuelo = SKAction.repeatActionForever(aleteo)
+        // ground
+        groundTexture.filteringMode = .Nearest // shorter form for SKTextureFilteringMode.Nearest
         
-        pajaro = SKSpriteNode(texture: texturaPajaro1)
-        pajaro.position = CGPoint(x: self.frame.size.width/2.75, y: CGRectGetMidY(self.frame))
-        pajaro.physicsBody = SKPhysicsBody(circleOfRadius: pajaro.size.height/2.0)
-        pajaro.physicsBody?.dynamic = true
-        pajaro.physicsBody?.allowsRotation = false
+        //let moveGroundSprite = SKAction.moveByX(-groundTexture.size().width * 2.0, y: 0, duration: NSTimeInterval(0.02 * groundTexture.size().width * 2.0))
+        let groundSpriteMove = SKAction.moveByX(-groundTexture.size().width, y: 0, duration: NSTimeInterval(0.01 * groundTexture.size().width))
+        //let resetGroundSprite = SKAction.moveByX(groundTexture.size().width * 2.0, y: 0, duration: 0.0)
+        let groundSpriteReset = SKAction.moveByX(groundTexture.size().width, y: 0, duration: 0.0)
+        let groundSpritesAnimation = SKAction.repeatActionForever(SKAction.sequence([groundSpriteMove, groundSpriteReset]))
         
-        pajaro.runAction(vuelo)
-        
-        pajaro.physicsBody!.categoryBitMask = categoriaPajaro
-        pajaro.physicsBody!.collisionBitMask = categoriaSuelo | categoriaTubos
-        pajaro.physicsBody!.contactTestBitMask = categoriaSuelo | categoriaTubos
-        
-        self.addChild(pajaro)
-        
-        let texturaCielo = SKTexture(imageNamed:"Cielo")
         //calculamos el tamaño total de la pantalla y lo dividimos por el tamaño total de la imagen. Para garantizar que tanto el primero como el último cubren totalmente el fondo al desplazarse lateralmente, lo añadimos una vez más (de ahí que le sumemos 2).
-        let fondosCielo = 2 + self.frame.size.width / (texturaCielo.size().width)
-        let movimientoCielo = SKAction.moveByX(-texturaCielo.size().width, y: 0, duration: NSTimeInterval(0.05 * texturaCielo.size().width))
-        let resetCielo = SKAction.moveByX(texturaCielo.size().width, y: 0, duration: 0.0)
-        let movimientoCieloConstante = SKAction.repeatActionForever(SKAction.sequence([movimientoCielo, resetCielo]))
-        for i in (0 as CGFloat).stride (through: fondosCielo, by: +1) {
-            let fraccion = SKSpriteNode(texture: texturaCielo)
-            fraccion.zPosition = -99
-            fraccion.position = CGPointMake(i * fraccion.size.width, fraccion.size.height - 100)
-            fraccion.runAction(movimientoCieloConstante)
-            movimiento.addChild(fraccion)
+        //let groundBackgrounds = 2.0 + self.frame.size.width / (groundTexture.size().width * 2.0)
+        let groundBackgrounds = 2 + self.frame.size.width / (groundTexture.size().width)
+        
+        for i in (0 as CGFloat).stride (through: groundBackgrounds, by: +1) {
+            let groundBackgroundSprite = SKSpriteNode(texture: groundTexture)
+            groundBackgroundSprite.zPosition = -1
+            //sprite.setScale(2.0)
+            //sprite.position = CGPoint(x: i * sprite.size.width, y: sprite.size.height / 2.0)
+            groundBackgroundSprite.position = CGPoint(x: i * groundBackgroundSprite.size.width, y: groundBackgroundSprite.size.height / 2)
+            groundBackgroundSprite.runAction(groundSpritesAnimation)
+            movingBackgroundLayer.addChild(groundBackgroundSprite)
         }
         
-        let texturaSuelo = SKTexture(imageNamed:"Suelo")
-        let movimientoSuelo = SKAction.moveByX(-texturaSuelo.size().width,y: 0,duration: NSTimeInterval(0.01 * texturaSuelo.size().width))
-        let resetSuelo = SKAction.moveByX(texturaSuelo.size().width, y: 0, duration: 0.0)
-        let movimientoSueloConstante = SKAction.repeatActionForever(SKAction.sequence([movimientoSuelo, resetSuelo]))
-        let fondosSuelo = 2 + self.frame.size.width / (texturaSuelo.size().width)
-        for i in (0 as CGFloat).stride (through: fondosSuelo, by: +1) {
-            let fraccion = SKSpriteNode(texture: texturaSuelo)
-            fraccion.zPosition = -97
-            fraccion.position = CGPointMake(i * fraccion.size.width, fraccion.size.height/2)
-            fraccion.runAction(movimientoSueloConstante)
-            movimiento.addChild(fraccion)
+        // create the ground limit
+        let groundLimit = SKNode()
+        //ground.position = CGPoint(x: 0, y: groundTexture.size().height)
+        groundLimit.position = CGPoint(x: 0, y: groundTexture.size().height / 2)
+        //ground.physicsBody = SKPhysicsBody(rectangleOfSize: CGSize(width: self.frame.size.width, height: groundTexture.size().height * 2.0))
+        groundLimit.physicsBody = SKPhysicsBody(rectangleOfSize: CGSize(width: self.frame.size.width * 2, height: groundTexture.size().height))
+        groundLimit.physicsBody?.dynamic = false
+        
+        groundLimit.physicsBody!.categoryBitMask = worldCategory
+        groundLimit.physicsBody!.contactTestBitMask = birdCategory
+        addChild(groundLimit)
+        
+        // skyline
+        skyTexture.filteringMode = .Nearest
+        
+        //let moveSkySprite = SKAction.moveByX(-skyTexture.size().width * 2.0, y: 0, duration: NSTimeInterval(0.1 * skyTexture.size().width * 2.0))
+        let skySpriteMove = SKAction.moveByX(-skyTexture.size().width, y: 0, duration: NSTimeInterval(0.05 * skyTexture.size().width))
+        //let resetSkySprite = SKAction.moveByX(skyTexture.size().width * 2.0, y: 0, duration: 0.0)
+        let skySpriteReset = SKAction.moveByX(skyTexture.size().width, y: 0, duration: 0)
+        //let moveSkySpritesForever = SKAction.repeatActionForever(SKAction.sequence([moveSkySprite,resetSkySprite]))
+        let skySpritesAnimation = SKAction.repeatActionForever(SKAction.sequence([skySpriteMove, skySpriteReset]))
+        
+        //let skyBackgrounds = 2.0 + self.frame.size.width / ( skyTexture.size().width * 2.0 )
+        let skyBackgrounds = 2 + self.frame.size.width / (skyTexture.size().width)
+        
+        for i in (0 as CGFloat).stride (through: skyBackgrounds, by: +1) {
+            let skyBackgroundSprite = SKSpriteNode(texture: skyTexture)
+            //sprite.zPosition = -20
+            skyBackgroundSprite.zPosition = -3
+            //sprite.setScale(2.0)
+            //sprite.position = CGPoint(x: i * sprite.size.width, y: sprite.size.height / 2.0 + groundTexture.size().height * 2.0)
+            skyBackgroundSprite.position = CGPoint(x: i * skyBackgroundSprite.size.width, y: skyBackgroundSprite.size.height - 100)
+            skyBackgroundSprite.runAction(skySpritesAnimation)
+            movingBackgroundLayer.addChild(skyBackgroundSprite)
         }
         
-        let topeSuelo = SKNode()
-        topeSuelo.position = CGPointMake(0, texturaSuelo.size().height/2.0)
-        topeSuelo.physicsBody = SKPhysicsBody( rectangleOfSize: CGSizeMake(self.frame.size.width, texturaSuelo.size().height))
-        topeSuelo.physicsBody?.dynamic = false
+        // create the sky limit
+        let skyLimit = SKNode()
+        //ground.position = CGPoint(x: 0, y: groundTexture.size().height)
+        skyLimit.position = CGPoint(x: 0, y: self.frame.maxY + 3 * groundTexture.size().height)
+        //ground.physicsBody = SKPhysicsBody(rectangleOfSize: CGSize(width: self.frame.size.width, height: groundTexture.size().height * 2.0))
+        skyLimit.physicsBody = SKPhysicsBody(rectangleOfSize: CGSize(width: self.frame.size.width * 2, height: groundTexture.size().height))
+        skyLimit.physicsBody?.dynamic = false
         
-        topeSuelo.physicsBody!.categoryBitMask = categoriaSuelo
-        topeSuelo.physicsBody!.contactTestBitMask = categoriaPajaro
+        skyLimit.physicsBody!.categoryBitMask = skyCategory
+        skyLimit.physicsBody!.contactTestBitMask = birdCategory
+        addChild(skyLimit)
         
-        self.addChild(topeSuelo)
+        // setup our bird
+        birdTexture1.filteringMode = .Nearest
+        birdTexture2.filteringMode = .Nearest
+        birdTexture3.filteringMode = .Nearest
         
-        colorCielo = SKColor(red: 113/255, green: 197/255, blue: 207/255, alpha: 1.0)
-        self.backgroundColor = colorCielo
+        //let anim = SKAction.animateWithTextures([birdTexture1, birdTexture2], timePerFrame: 0.2)
+        //let flap = SKAction.repeatActionForever(anim)
+        let flappyBirdAnimation = SKAction.repeatActionForever(SKAction.animateWithTextures([birdTexture1, birdTexture2, birdTexture3, birdTexture2], timePerFrame: 0.2))
         
-        texturaTubo1 = SKTexture(imageNamed: "tubo1")
-        texturaTubo2 = SKTexture(imageNamed: "tubo2")
+        bird = SKSpriteNode(texture: birdTexture1)
+        bird.zPosition = 100
+        //bird.setScale(2.0)
+        //bird.position = CGPoint(x: self.frame.size.width * 0.35, y:self.frame.size.height * 0.6)
+        bird.position = CGPoint(x: self.frame.size.width / 2.8, y: self.frame.size.height * 0.6)
+        //bird.position = CGPoint(x: self.frame.size.width / 2.5, y: self.frame.midY)
+        bird.runAction(flappyBirdAnimation, withKey: "flappyBirdAnimation")
         
-        let crearTubo = SKAction.runBlock({ ()
-            in self.gestionTubos()
-        })
-        let retardo = SKAction.waitForDuration(NSTimeInterval(2.0))
-        let crearTuboSiguiente = SKAction.sequence([crearTubo, retardo])
-        let crearTuboSiguienteForever = SKAction.repeatActionForever(crearTuboSiguiente)
-        self.runAction(crearTuboSiguienteForever)
         
-        puntuacion = 0
-        puntuacionLabel.fontName = "Arial"
-        puntuacionLabel.fontSize = 100
-        puntuacionLabel.alpha = 0.5
-        puntuacionLabel.position = CGPointMake(CGRectGetMidX(self.frame), self.frame.height-150)
-        puntuacionLabel.zPosition = 0
-        puntuacionLabel.text = "\(puntuacion)"
-        self.addChild(puntuacionLabel)
+        bird.physicsBody = SKPhysicsBody(circleOfRadius: bird.size.height / 2)
+        bird.physicsBody?.dynamic = true
+        bird.physicsBody?.allowsRotation = false
+        bird.physicsBody?.categoryBitMask = birdCategory
+        bird.physicsBody?.collisionBitMask = worldCategory | pipeCategory | skyCategory
+        bird.physicsBody?.contactTestBitMask = worldCategory | pipeCategory | skyCategory
         
-        mejorPuntuacion = 0
-        mejorPuntuacionLabel.fontName = "Arial"
-        mejorPuntuacionLabel.position = CGPointMake(CGRectGetMidX(self.frame), self.frame.height-30)
-        mejorPuntuacionLabel.fontSize = 20
-        mejorPuntuacionLabel.alpha = 0.5
-        mejorPuntuacionLabel.zPosition = 0
-        mejorPuntuacionLabel.text = "Mejor puntuación:\n\(mejorPuntuacion)"
-        self.addChild(mejorPuntuacionLabel)
+        addChild(bird)
+        
+        // create the pipes textures
+        pipeTextureUp.filteringMode = .Nearest
+        pipeTextureDown.filteringMode = .Nearest
+        
+        // create the pipes movement actions
+        //let distanceToMove = CGFloat(self.frame.size.width + 2 * pipeTextureUp.size().width)
+        let distanceToMove = CGFloat(self.frame.size.width + pipeTextureUp.size().width * 2)
+        //let movePipes = SKAction.moveByX(-distanceToMove, y:0.0, duration:NSTimeInterval(0.01 * distanceToMove))
+        let movePipes = SKAction.moveByX(-distanceToMove, y: 0, duration: NSTimeInterval(0.008 * distanceToMove))
+        let removePipes = SKAction.removeFromParent()
+        movePipesAndRemove = SKAction.sequence([movePipes, removePipes])
+        
+        pipesManager = SKNode()
+        movingBackgroundLayer.addChild(pipesManager)
+        
+        // spawn the pipes
+        let spawnPipes = SKAction.runBlock({() in self.spawnPipes()})
+        
+        let delay = SKAction.waitForDuration(NSTimeInterval(2))
+        let spawnPipesThenDelay = SKAction.sequence([spawnPipes, delay])
+        let spawnPipesThenDelayForever = SKAction.repeatActionForever(spawnPipesThenDelay)
+        self.runAction(spawnPipesThenDelayForever)
+        
+        // Create a label which holds the score
+        scoreLabelNode.position = CGPoint(x: self.frame.midX, y: 3 * self.frame.size.height / 4)
+        scoreLabelNode.zPosition = 100
+        scoreLabelNode.text = String(score)
+        addChild(scoreLabelNode)
     }
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
        /* Called when a touch begins */
-        if(movimiento.speed>0) {
-            pajaro.physicsBody!.velocity = CGVectorMake(0,0)
-            pajaro.physicsBody!.applyImpulse(CGVectorMake(0,6))
-        } else if reset {
-            self.reiniciarEscena()
+        if movingBackgroundLayer.speed > 0  {
+            for touch: AnyObject in touches {
+                _ = touch.locationInNode(self)
+                
+                bird.physicsBody!.velocity = CGVector(dx: 0, dy: 0)
+                //bird.physicsBody!.applyImpulse(CGVector(dx: 0, dy: 30))
+                bird.physicsBody!.applyImpulse(CGVector(dx: 0, dy: 6))
+            }
+        } else if canRestart {
+            self.resetScene()
         }
     }
    
     override func update(currentTime: CFTimeInterval) {
         /* Called before each frame is rendered */
-        pajaro.zRotation = self.rotacion(-1, max:0.5, valor: pajaro.physicsBody!.velocity.dy * (pajaro.physicsBody!.velocity.dy < 0 ? 0.003 : 0.001))
+        bird.zRotation = clamp(-1, max: 0.5, value: bird.physicsBody!.velocity.dy * (bird.physicsBody!.velocity.dy < 0 ? 0.003 : 0.001))
     }
     
-    func rotacion (min: CGFloat, max: CGFloat, valor: CGFloat) -> CGFloat {
-        if (valor > max) {
-            return max
-        } else if(valor < min) {
-            return min
-        } else {
-            return valor
-        }
+    func spawnPipes() {
+        let pipePair = SKNode()
+        //pipePair.position = CGPoint( x: self.frame.size.width + pipeTextureUp.size().width * 2, y: 0 )
+        pipePair.position = CGPointMake(self.frame.size.width + pipeTextureUp.size().width, 0)
+        //pipePair.zPosition = -10
+        pipePair.zPosition = -2
+        
+        //let height = UInt32( self.frame.size.height / 4)
+        let height = UInt32(self.frame.size.height / 3)
+        //let y = Double(arc4random_uniform(height) + height);
+        let y = UInt32(arc4random()) % height
+        
+        let pipeDown = SKSpriteNode(texture: pipeTextureDown)
+        //pipeDown.setScale(2.0)
+        //pipeDown.position = CGPoint(x: 0.0, y: y + Double(pipeDown.size.height) + verticalPipeGap)
+        pipeDown.position  = CGPoint(x: 0,  y: CGFloat(y))
+        
+        pipeDown.physicsBody = SKPhysicsBody(rectangleOfSize: pipeDown.size)
+        pipeDown.physicsBody?.dynamic = false
+        pipeDown.physicsBody?.categoryBitMask = pipeCategory
+        pipeDown.physicsBody?.contactTestBitMask = birdCategory
+        
+        pipePair.addChild(pipeDown)
+        
+        let pipeUp = SKSpriteNode(texture: pipeTextureUp)
+        //pipeUp.setScale(2.0)
+        //pipeUp.position = CGPoint(x: 0.0, y: y)
+        pipeUp.position = CGPoint(x: 0, y: CGFloat(y) + pipeDown.size.height + CGFloat(verticalPipeGap))
+        
+        pipeUp.physicsBody = SKPhysicsBody(rectangleOfSize: pipeUp.size)
+        pipeUp.physicsBody?.dynamic = false
+        pipeUp.physicsBody?.categoryBitMask = pipeCategory
+        pipeUp.physicsBody?.contactTestBitMask = birdCategory
+        
+        pipePair.addChild(pipeUp)
+        
+        let contactZoneNode = SKNode()
+        //contactNode.position = CGPoint( x: pipeDown.size.width + bird.size.width / 2, y: self.frame.midY )
+        contactZoneNode.position = CGPoint(x: pipeDown.size.width + bird.size.width / 2, y: self.frame.midY)
+        contactZoneNode.physicsBody = SKPhysicsBody(rectangleOfSize: CGSize(width: pipeUp.size.width, height: self.frame.size.height ))
+        contactZoneNode.physicsBody?.dynamic = false
+        contactZoneNode.physicsBody?.categoryBitMask = scoreCategory
+        contactZoneNode.physicsBody?.contactTestBitMask = birdCategory
+        
+        pipePair.addChild(contactZoneNode)
+        
+        pipePair.runAction(movePipesAndRemove)
+        
+        pipesManager.addChild(pipePair)
     }
     
-    func gestionTubos(){
-        let conjuntoTubo = SKNode()
-        conjuntoTubo.position = CGPointMake(self.frame.size.width + texturaTubo1.size().width, 0)
-        conjuntoTubo.zPosition = -10
-        let altura = UInt(self.frame.size.height / 3)
-        let y = UInt(arc4random()) % altura
+    func resetScene (){
+        // Move bird to original position and reset velocity
+        bird.position = CGPoint(x: self.frame.size.width / 2.8, y: self.frame.size.height * 0.6)
+        //bird.position = CGPoint(x: self.frame.size.width / 2.5, y: self.frame.midY)
+        bird.physicsBody?.velocity = CGVector( dx: 0, dy: 0 )
+        bird.physicsBody?.categoryBitMask = birdCategory
+        bird.physicsBody?.collisionBitMask = worldCategory | pipeCategory | skyCategory
+        bird.physicsBody?.contactTestBitMask = worldCategory | pipeCategory | skyCategory
+        bird.speed = 1
+        bird.paused = false
+        bird.zRotation = 0
         
-        let tubo1 = SKSpriteNode(texture:texturaTubo1)
-        tubo1.position  = CGPointMake(0.0,  CGFloat(y))
-        tubo1.physicsBody = SKPhysicsBody(rectangleOfSize: tubo1.size)
-        tubo1.physicsBody!.dynamic = false
+        // Remove all existing pipes
+        pipesManager.removeAllChildren()
+        verticalPipeGap = 150
         
-        tubo1.physicsBody!.categoryBitMask = categoriaTubos
-        tubo1.physicsBody!.contactTestBitMask = categoriaPajaro
+        // Reset _canRestart
+        canRestart = false
         
-        conjuntoTubo.addChild(tubo1)
+        // Reset score
+        score = 0
+        scoreLabelNode.text = String(score)
         
-        let tubo2 = SKSpriteNode(texture:texturaTubo2)
-        tubo2.position = CGPointMake(0.0, CGFloat(y) + tubo1.size.height + CGFloat(separacionTubos))
-        tubo2.physicsBody = SKPhysicsBody(rectangleOfSize: tubo2.size)
-        tubo2.physicsBody!.dynamic = false
-        
-        tubo2.physicsBody!.categoryBitMask = categoriaTubos
-        tubo2.physicsBody!.contactTestBitMask = categoriaPajaro
-        
-        conjuntoTubo.addChild(tubo2)
-        
-        let avanceNodo = SKNode()
-        avanceNodo.position = CGPointMake(tubo1.size.width + pajaro.size.width/2.0, CGRectGetMidY(self.frame))
-        avanceNodo.physicsBody = SKPhysicsBody(rectangleOfSize: CGSizeMake(tubo1.size.width, self.frame.size.height))
-        avanceNodo.physicsBody?.dynamic = false
-        avanceNodo.physicsBody?.categoryBitMask = categoriaAvance
-        avanceNodo.physicsBody?.contactTestBitMask = categoriaPajaro
-        
-        conjuntoTubo.addChild(avanceNodo)
-        
-        adminTubos.addChild(conjuntoTubo)
-        
-        let distanciaMovimiento = CGFloat( self.frame.size.width + texturaTubo1.size().width*2.0)
-        let movimientoTubo = SKAction.moveByX(-distanciaMovimiento, y:0.0, duration: NSTimeInterval(0.008*distanciaMovimiento))
-        let eliminarTubo = SKAction.removeFromParent()
-        controlTubo = SKAction.sequence([movimientoTubo, eliminarTubo])
-        conjuntoTubo.runAction(controlTubo)
+        // Restart animation
+        movingBackgroundLayer.speed = 1
     }
     
     func didBeginContact(contact: SKPhysicsContact) {
-        if((contact.bodyA.categoryBitMask & categoriaAvance == categoriaAvance) || (contact.bodyB.categoryBitMask & categoriaAvance) == categoriaAvance ) {
-            puntuacion += 1
-            puntuacionLabel.text = "\(puntuacion)"
-            if (separacionTubos>120) {
-                separacionTubos -= 5
-            }
-        } else {
-            if(movimiento.speed > 0) {
-                let resetJuego = SKAction.runBlock({()
-                    in self.resetGame()
-                })
-                movimiento.speed = 0
-                let cambiarCieloRojo = SKAction.runBlock({()
-                    in self.ponerCieloRojo()
-                })
-                let conjuntoGameOver = SKAction.group([cambiarCieloRojo, resetJuego])
-                self.runAction(conjuntoGameOver)
+        if movingBackgroundLayer.speed > 0 {
+            if (contact.bodyA.categoryBitMask & scoreCategory) == scoreCategory || (contact.bodyB.categoryBitMask & scoreCategory) == scoreCategory {
+                // Bird has contact with score entity
+                score += 1
+                scoreLabelNode.text = String(score)
+                if verticalPipeGap > 100 {
+                    verticalPipeGap -= 5
+                }
+                
+                // Add a little visual feedback for the score increment
+                scoreLabelNode.runAction(SKAction.sequence([SKAction.scaleTo(1.5, duration:NSTimeInterval(0.1)), SKAction.scaleTo(1.0, duration:NSTimeInterval(0.1))]))
+            } else {
+                if movingBackgroundLayer.speed > 0 {
+                    movingBackgroundLayer.speed = 0
+                    self.bird.paused = true
+                    self.bird.speed = 0
+                    
+                    // Flash background if contact is detected
+                    self.removeActionForKey("flash")
+                    self.runAction(SKAction.sequence([SKAction.repeatAction(SKAction.sequence([SKAction.runBlock({
+                        self.backgroundColor = UIColor.redColor()
+                    }),SKAction.waitForDuration(NSTimeInterval(0.05)), SKAction.runBlock({
+                        self.backgroundColor = self.skyColor
+                    }), SKAction.waitForDuration(NSTimeInterval(0.05))]), count:4), SKAction.runBlock({
+                        self.canRestart = true
+                    })]), withKey: "flash")
+                }
             }
         }
-    }
-    
-    func ponerCieloRojo() {
-        self.backgroundColor = UIColor.redColor()
-    }
-    
-    func resetGame() {
-        reset = true
-    }
-    
-    func reiniciarEscena(){
-        let colorCielo = SKColor(red: 113/255, green: 197/255, blue: 207/255, alpha: 1)
-        self.backgroundColor = colorCielo
-        pajaro.position = CGPoint(x:self.frame.size.width / 2.8, y:CGRectGetMidY(self.frame))
-        pajaro.physicsBody!.velocity = CGVectorMake (0,0)
-        pajaro.speed = 0
-        pajaro.zRotation = 0
-        reset = false
-        movimiento.speed = 1
-        adminTubos.removeAllChildren()
-        separacionTubos = 200
-        if puntuacion > mejorPuntuacion {
-            mejorPuntuacion = puntuacion
-        }
-        mejorPuntuacionLabel.text = "Mejor puntuación:\n\(mejorPuntuacion)"
-        puntuacion = 0
-        puntuacionLabel.text = "\(puntuacion)"
     }
 }
