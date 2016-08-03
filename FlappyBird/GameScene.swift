@@ -43,6 +43,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var getReadySprite: SKSpriteNode!
     let getReadyTexture: SKTexture
     var spawnPipesThenDelayForever: SKAction!
+    var gameOver: SKSpriteNode!
+    let gameOverTexture: SKTexture
     
     override init(size:CGSize) {
         birdTexture1 = SKTexture(imageNamed: "pajaro1")
@@ -56,6 +58,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scoreLabelNode = SKLabelNode(fontNamed:"MarkerFelt-Wide")
         score = 0
         getReadyTexture = SKTexture(imageNamed: "getReady")
+        gameOverTexture = SKTexture(imageNamed: "gameOver")
         
         super.init(size:size)
     }
@@ -208,6 +211,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         getReadySprite.position = CGPoint(x: self.frame.midX, y: self.frame.midY + 130)
         getReadySprite.hidden = getReady
         addChild(getReadySprite)
+        
+        // setup Game over
+        gameOverTexture.filteringMode = .Nearest
+        gameOver = SKSpriteNode(texture: gameOverTexture)
+        gameOver.zPosition = 100
+        gameOver.position = CGPoint(x: self.frame.midX, y: self.frame.midY + 130)
+        gameOver.hidden = !isGameOver
+        addChild(gameOver)
     }
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
@@ -332,6 +343,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Reset _getReady
         getReady = false
+        
+        // Reset _gameOver
+        isGameOver = false
+        gameOver.hidden = !isGameOver
     }
     
     func didBeginContact(contact: SKPhysicsContact) {
@@ -360,6 +375,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                         self.backgroundColor = self.skyColor
                     }), SKAction.waitForDuration(NSTimeInterval(0.05))]), count:4), SKAction.runBlock({
                         self.canRestart = true
+                        self.isGameOver = true
+                        self.gameOver.hidden = !self.isGameOver
+                        self.scoreLabelNode.hidden = self.isGameOver
                     })]), withKey: "flash")
                 }
             }

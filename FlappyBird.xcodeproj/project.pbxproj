@@ -30,6 +30,7 @@
 		304444E81D5190CD007DEEA3 /* MathUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 304444D11D5190CD007DEEA3 /* MathUtils.swift */; };
 		304444E91D5190CD007DEEA3 /* MusicUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 304444D21D5190CD007DEEA3 /* MusicUtils.swift */; };
 		304444EA1D5190CD007DEEA3 /* RandomUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 304444D31D5190CD007DEEA3 /* RandomUtils.swift */; };
+		304444EC1D51959C007DEEA3 /* gameOver.png in Resources */ = {isa = PBXBuildFile; fileRef = 304444EB1D51959C007DEEA3 /* gameOver.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -56,6 +57,7 @@
 		304444D11D5190CD007DEEA3 /* MathUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MathUtils.swift; sourceTree = "<group>"; };
 		304444D21D5190CD007DEEA3 /* MusicUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MusicUtils.swift; sourceTree = "<group>"; };
 		304444D31D5190CD007DEEA3 /* RandomUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RandomUtils.swift; sourceTree = "<group>"; };
+		304444EB1D51959C007DEEA3 /* gameOver.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gameOver.png; sourceTree = "<group>"; };
 		309325CB1D4B0CF8006D32D5 /* FlappyBird.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FlappyBird.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -93,6 +95,7 @@
 		304444BB1D5190CD007DEEA3 /* Assets */ = {
 			isa = PBXGroup;
 			children = (
+				304444EB1D51959C007DEEA3 /* gameOver.png */,
 				304444BC1D5190CD007DEEA3 /* cielo.png */,
 				304444BD1D5190CD007DEEA3 /* getReady.png */,
 				304444BE1D5190CD007DEEA3 /* MainMenu.png */,
@@ -187,6 +190,7 @@
 				304444E61D5190CD007DEEA3 /* Info.plist in Resources */,
 				304444D51D5190CD007DEEA3 /* cielo.png in Resources */,
 				304444E11D5190CD007DEEA3 /* LaunchScreen.storyboard in Resources */,
+				304444EC1D51959C007DEEA3 /* gameOver.png in Resources */,
 				304444DC1D5190CD007DEEA3 /* suelo.png in Resources */,
 				304444E01D5190CD007DEEA3 /* Assets.xcassets in Resources */,
 				304444D71D5190CD007DEEA3 /* MainMenu.png in Resources */,
