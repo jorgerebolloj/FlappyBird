@@ -26,6 +26,10 @@
 		30D9DBCB1D50D9FE000C9049 /* suelo.png in Resources */ = {isa = PBXBuildFile; fileRef = 30D9DBC31D50D9FE000C9049 /* suelo.png */; };
 		30D9DBCC1D50D9FE000C9049 /* tubo1.png in Resources */ = {isa = PBXBuildFile; fileRef = 30D9DBC41D50D9FE000C9049 /* tubo1.png */; };
 		30D9DBCD1D50D9FE000C9049 /* tubo2.png in Resources */ = {isa = PBXBuildFile; fileRef = 30D9DBC51D50D9FE000C9049 /* tubo2.png */; };
+		30D9DBCF1D517140000C9049 /* MainMenu.png in Resources */ = {isa = PBXBuildFile; fileRef = 30D9DBCE1D517140000C9049 /* MainMenu.png */; };
+		30D9DBD21D517A69000C9049 /* playButton.png in Resources */ = {isa = PBXBuildFile; fileRef = 30D9DBD01D517A69000C9049 /* playButton.png */; };
+		30D9DBD31D517A69000C9049 /* tutorial.png in Resources */ = {isa = PBXBuildFile; fileRef = 30D9DBD11D517A69000C9049 /* tutorial.png */; };
+		30D9DBD51D517C68000C9049 /* getReady.png in Resources */ = {isa = PBXBuildFile; fileRef = 30D9DBD41D517C68000C9049 /* getReady.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +53,10 @@
 		30D9DBC31D50D9FE000C9049 /* suelo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = suelo.png; sourceTree = "<group>"; };
 		30D9DBC41D50D9FE000C9049 /* tubo1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = tubo1.png; sourceTree = "<group>"; };
 		30D9DBC51D50D9FE000C9049 /* tubo2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = tubo2.png; sourceTree = "<group>"; };
+		30D9DBCE1D517140000C9049 /* MainMenu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = MainMenu.png; sourceTree = "<group>"; };
+		30D9DBD01D517A69000C9049 /* playButton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = playButton.png; sourceTree = "<group>"; };
+		30D9DBD11D517A69000C9049 /* tutorial.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = tutorial.png; sourceTree = "<group>"; };
+		30D9DBD41D517C68000C9049 /* getReady.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = getReady.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,16 +90,16 @@
 			isa = PBXGroup;
 			children = (
 				30D9DBB71D50D955000C9049 /* Base.lproj */,
+				30D9DB7C1D50D88C000C9049 /* AppDelegate.swift */,
+				30D9DBA21D50D8EC000C9049 /* GameViewController.swift */,
+				30D9DBA41D50D8EC000C9049 /* MainMenuScene.swift */,
 				30D9DBA01D50D8EC000C9049 /* GameScene.sks */,
 				30D9DBA11D50D8EC000C9049 /* GameScene.swift */,
-				30D9DBA21D50D8EC000C9049 /* GameViewController.swift */,
 				30D9DBA31D50D8EC000C9049 /* Info.plist */,
-				30D9DBA41D50D8EC000C9049 /* MainMenuScene.swift */,
 				30D9DBA51D50D8EC000C9049 /* MathUtils.swift */,
 				30D9DBA61D50D8EC000C9049 /* MusicUtils.swift */,
 				30D9DBA71D50D8EC000C9049 /* RandomUtils.swift */,
 				30D9DB9E1D50D8CF000C9049 /* Assets.xcassets */,
-				30D9DB7C1D50D88C000C9049 /* AppDelegate.swift */,
 				30D9DB521D50D855000C9049 /* Assets */,
 			);
 			name = FlappyBird;
@@ -101,6 +109,10 @@
 		30D9DB521D50D855000C9049 /* Assets */ = {
 			isa = PBXGroup;
 			children = (
+				30D9DBD41D517C68000C9049 /* getReady.png */,
+				30D9DBD01D517A69000C9049 /* playButton.png */,
+				30D9DBD11D517A69000C9049 /* tutorial.png */,
+				30D9DBCE1D517140000C9049 /* MainMenu.png */,
 				30D9DBBE1D50D9FD000C9049 /* cielo.png */,
 				30D9DBBF1D50D9FD000C9049 /* pajaro1.png */,
 				30D9DBC01D50D9FD000C9049 /* pajaro2.png */,
@@ -184,10 +196,14 @@
 				30D9DBC61D50D9FE000C9049 /* cielo.png in Resources */,
 				30D9DBAB1D50D8EC000C9049 /* Info.plist in Resources */,
 				30D9DBBD1D50D955000C9049 /* Main.storyboard in Resources */,
+				30D9DBCF1D517140000C9049 /* MainMenu.png in Resources */,
+				30D9DBD51D517C68000C9049 /* getReady.png in Resources */,
 				30D9DBCD1D50D9FE000C9049 /* tubo2.png in Resources */,
+				30D9DBD21D517A69000C9049 /* playButton.png in Resources */,
 				30D9DBCA1D50D9FE000C9049 /* pajaro3.png in Resources */,
 				30D9DBC71D50D9FE000C9049 /* pajaro1.png in Resources */,
 				30D9DBCB1D50D9FE000C9049 /* suelo.png in Resources */,
+				30D9DBD31D517A69000C9049 /* tutorial.png in Resources */,
 				30D9DBA81D50D8EC000C9049 /* GameScene.sks in Resources */,
 				30D9DBC81D50D9FE000C9049 /* pajaro2.png in Resources */,
 				30D9DBBC1D50D955000C9049 /* LaunchScreen.storyboard in Resources */,

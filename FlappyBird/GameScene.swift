@@ -32,12 +32,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var score = NSInteger()
     
     var isGameOver = Bool()
+    var getReady = Bool()
     
     let birdCategory: UInt32 = 1 << 0
     let worldCategory: UInt32 = 1 << 1
     let skyCategory: UInt32 = 1 << 2
     let pipeCategory: UInt32 = 1 << 3
     let scoreCategory: UInt32 = 1 << 4
+    
+    var getReadySprite: SKSpriteNode!
+    let getReadyTexture: SKTexture
+    var spawnPipesThenDelayForever: SKAction!
     
     override init(size:CGSize) {
         birdTexture1 = SKTexture(imageNamed: "pajaro1")
@@ -50,6 +55,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         pipeTextureDown = SKTexture(imageNamed: "tubo1")
         scoreLabelNode = SKLabelNode(fontNamed:"MarkerFelt-Wide")
         score = 0
+        getReadyTexture = SKTexture(imageNamed: "getReady")
         
         super.init(size:size)
     }
@@ -62,6 +68,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         /* Setup your scene here */
         
         canRestart = false
+        getReady = false
         
         // setup physics
         physicsWorld.gravity = CGVector(dx: 0.0, dy: -5.0)
@@ -163,14 +170,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         //bird.position = CGPoint(x: self.frame.size.width / 2.5, y: self.frame.midY)
         bird.runAction(flappyBirdAnimation, withKey: "flappyBirdAnimation")
         
-        
-        bird.physicsBody = SKPhysicsBody(circleOfRadius: bird.size.height / 2)
-        bird.physicsBody?.dynamic = true
-        bird.physicsBody?.allowsRotation = false
-        bird.physicsBody?.categoryBitMask = birdCategory
-        bird.physicsBody?.collisionBitMask = worldCategory | pipeCategory | skyCategory
-        bird.physicsBody?.contactTestBitMask = worldCategory | pipeCategory | skyCategory
-        
         addChild(bird)
         
         // create the pipes textures
@@ -193,18 +192,46 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let delay = SKAction.waitForDuration(NSTimeInterval(2))
         let spawnPipesThenDelay = SKAction.sequence([spawnPipes, delay])
-        let spawnPipesThenDelayForever = SKAction.repeatActionForever(spawnPipesThenDelay)
-        self.runAction(spawnPipesThenDelayForever)
+        spawnPipesThenDelayForever = SKAction.repeatActionForever(spawnPipesThenDelay)
         
         // Create a label which holds the score
         scoreLabelNode.position = CGPoint(x: self.frame.midX, y: 3 * self.frame.size.height / 4)
         scoreLabelNode.zPosition = 100
         scoreLabelNode.text = String(score)
+        scoreLabelNode.hidden = !getReady
         addChild(scoreLabelNode)
+        
+        // setup our getReady
+        getReadyTexture.filteringMode = .Nearest
+        getReadySprite = SKSpriteNode(texture: getReadyTexture)
+        getReadySprite.zPosition = 100
+        getReadySprite.position = CGPoint(x: self.frame.midX, y: self.frame.midY + 130)
+        getReadySprite.hidden = getReady
+        addChild(getReadySprite)
     }
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
        /* Called when a touch begins */
+        if !getReady {
+            getReady = true
+            
+            // set getReady label
+            getReadySprite.hidden = getReady
+            
+            // set physics to bird
+            bird.physicsBody = SKPhysicsBody(circleOfRadius: bird.size.height / 2)
+            bird.physicsBody?.dynamic = true
+            bird.physicsBody?.allowsRotation = false
+            bird.physicsBody?.categoryBitMask = birdCategory
+            bird.physicsBody?.collisionBitMask = worldCategory | pipeCategory | skyCategory
+            bird.physicsBody?.contactTestBitMask = worldCategory | pipeCategory | skyCategory
+            
+            // add pipes
+            self.runAction(spawnPipesThenDelayForever, withKey: "spawnPipesThenDelayForever")
+            
+            // set visible scoreLabelNode
+            scoreLabelNode.hidden = !getReady
+        }
         if movingBackgroundLayer.speed > 0  {
             for touch: AnyObject in touches {
                 _ = touch.locationInNode(self)
@@ -220,7 +247,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
    
     override func update(currentTime: CFTimeInterval) {
         /* Called before each frame is rendered */
-        bird.zRotation = clamp(-1, max: 0.5, value: bird.physicsBody!.velocity.dy * (bird.physicsBody!.velocity.dy < 0 ? 0.003 : 0.001))
+        if getReady {
+            bird.zRotation = clamp(-1, max: 0.5, value: bird.physicsBody!.velocity.dy * (bird.physicsBody!.velocity.dy < 0 ? 0.003 : 0.001))
+        }
     }
     
     func spawnPipes() {
@@ -288,6 +317,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Remove all existing pipes
         pipesManager.removeAllChildren()
+        self.removeActionForKey("spawnPipesThenDelayForever")
         verticalPipeGap = 150
         
         // Reset _canRestart
@@ -299,6 +329,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Restart animation
         movingBackgroundLayer.speed = 1
+        
+        // Reset _getReady
+        getReady = false
     }
     
     func didBeginContact(contact: SKPhysicsContact) {

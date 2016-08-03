@@ -4,4 +4,7 @@
    <FileRef
       location = "self:/Users/jorgerebolloj/Repos/FlappyBirdClone/FlappyBird.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "group:">
+   </FileRef>
 </Workspace>
