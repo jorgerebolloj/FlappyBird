@@ -2,7 +2,7 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:/Users/jorgerebolloj/Repos/FlappyBirdClone/FlappyBird.xcodeproj">
+      location = "self:/Users/jorgerebolloj/Repos/FlappyBird/FlappyBird.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:">

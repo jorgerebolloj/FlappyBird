@@ -37,6 +37,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="MainMenu.png" width="2048" height="1536"/>
+        <image name="MainMenu.png" width="1536" height="2048"/>
     </resources>
 </document>
