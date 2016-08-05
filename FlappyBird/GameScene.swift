@@ -215,7 +215,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // setup Game over
         gameOverTexture.filteringMode = .Nearest
         gameOver = SKSpriteNode(texture: gameOverTexture)
-        gameOver.zPosition = 100
+        gameOver.zPosition = 101
         gameOver.position = CGPoint(x: self.frame.midX, y: self.frame.midY + 130)
         gameOver.hidden = !isGameOver
         addChild(gameOver)
@@ -318,10 +318,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Move bird to original position and reset velocity
         bird.position = CGPoint(x: self.frame.size.width / 2.8, y: self.frame.size.height * 0.6)
         //bird.position = CGPoint(x: self.frame.size.width / 2.5, y: self.frame.midY)
-        bird.physicsBody?.velocity = CGVector( dx: 0, dy: 0 )
+        /*bird.physicsBody?.velocity = CGVector( dx: 0, dy: 0 )
         bird.physicsBody?.categoryBitMask = birdCategory
         bird.physicsBody?.collisionBitMask = worldCategory | pipeCategory | skyCategory
-        bird.physicsBody?.contactTestBitMask = worldCategory | pipeCategory | skyCategory
+        bird.physicsBody?.contactTestBitMask = worldCategory | pipeCategory | skyCategory*/
+        bird.physicsBody = nil
         bird.speed = 1
         bird.paused = false
         bird.zRotation = 0
@@ -343,6 +344,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Reset _getReady
         getReady = false
+        getReadySprite.hidden = getReady
         
         // Reset _gameOver
         isGameOver = false
